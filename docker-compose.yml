@@ -1,0 +1,86 @@
+x-airflow-common: &airflow-common
+  image: apache/airflow:2.9.1
+  env_file: .env
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./dbt:/opt/airflow/dbt
+    - ./logs:/opt/airflow/logs
+    - ./plugins:/opt/airflow/plugins
+  depends_on:
+    postgres:
+      condition: service_healthy
+
+services:
+
+  # ── Airflow's internal metadata database ──────────
+  # Stores: DAG runs, task states, XCom values, logs
+  # NOT your Supabase — this is Airflow's own DB
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      retries: 5
+
+  # ── One-time init: migrations + admin user ─────────
+  # Runs once and exits — exit code 0 = success
+  airflow-init:
+    <<: *airflow-common
+    command: >
+      bash -c "
+        airflow db migrate &&
+        airflow users create
+          --username admin
+          --password admin
+          --firstname Admin
+          --lastname User
+          --role Admin
+          --email admin@espyguard.local
+      "
+    restart: "no"
+
+  # ── Airflow UI ─────────────────────────────────────
+  # Visit: http://localhost:8080
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  # ── Airflow Scheduler ──────────────────────────────
+  # Reads DAG files, triggers tasks on schedule
+  # Runs continuously in the background
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    restart: unless-stopped
+
+  # ── MinIO: S3-compatible object storage ───────────
+  # API:     http://localhost:9000
+  # Console: http://localhost:9001
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      retries: 3
+
+volumes:
+  postgres_data:
+  minio_data:

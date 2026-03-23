@@ -1,0 +1,15 @@
+# Copy this file to profiles.yml and fill in your values
+# Never commit profiles.yml — only profiles.yml.example
+
+espyguard:
+  target: prod
+  outputs:
+    prod:
+      type: postgres
+      host: "aws-0-<region>.pooler.supabase.com"
+      port: 5432
+      user: "postgres.<your-ref>"
+      password: "<your-password>"
+      dbname: postgres
+      schema: public
+      threads: 4
