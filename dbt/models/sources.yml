@@ -1,0 +1,14 @@
+version: 2
+
+sources:
+  - name: public
+    database: postgres
+    schema: public
+    description: "Bronze layer — raw WiFi scan data from ESP32"
+    tables:
+      - name: bronze_scans
+        description: "One row per ESP32 payload received"
+      - name: bronze_networks
+        description: "One row per access point per scan"
+      - name: bronze_stations
+        description: "One row per observed device per scan"
