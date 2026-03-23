@@ -1,0 +1,16 @@
+name: espyguard
+version: '1.0.0'
+profile: espyguard
+
+model-paths: ["models"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  espyguard:
+    silver:
+      +materialized: table   # stored as real tables
+      +schema: public        # written to public schema in Supabase
+    gold:
+      +materialized: table
+      +schema: public
