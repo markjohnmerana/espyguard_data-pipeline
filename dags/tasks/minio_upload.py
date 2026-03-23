@@ -9,8 +9,7 @@ from botocore.client import Config
 # ─────────────────────────────────────────────
 # Load credentials strictly from environment.
 # No fallback defaults — if a variable is missing
-# we want to fail immediately with a clear error,
-# not silently use a hardcoded value.
+# we want to fail immediately with a clear error
 # ─────────────────────────────────────────────
 
 def _get_config():
