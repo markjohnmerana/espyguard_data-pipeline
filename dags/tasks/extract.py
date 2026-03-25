@@ -51,6 +51,13 @@ EXTRACT_QUERY = """
     ORDER BY s.received_at DESC
 """
 
+#TESTING_QUERY = """
+"""SELECT 
+        (SELECT COUNT(scan_id) FROM bronze_networks) AS networks_table_count,
+        (SELECT COUNT(device_id) FROM bronze_scans) AS scans_table_count,
+        (SELECT COUNT(scan_id) FROM bronze_stations) AS stations_table_count;
+"""
+
 
 def extract_bronze(**context):
     """
@@ -68,9 +75,13 @@ def extract_bronze(**context):
 
     cur.execute(EXTRACT_QUERY)
     rows = cur.fetchall()
+    #cur.execute("SELECT COUNT(*) FROM bronze_scans")
+    #print(cur.fetchone())
 
     cur.close()
     conn.close()
+
+    #return
 
     # Serialize rows into a list of dicts
     # received_at is a datetime — convert to ISO string
@@ -88,6 +99,17 @@ def extract_bronze(**context):
 
     print(f"[extract] Extracted {len(data)} scans "
           f"from the last 30 minutes.")
-
+    return
     # Push to XCom — upload_to_minio will pull this
     context["ti"].xcom_push(key="bronze_data", value=data)
+
+if __name__ == "__main__":
+    class DummyTI:
+        def xcom_push(self, key, value):
+            print(f"[XCOM PUSH] key={key}, value_length={len(value)}")
+
+    dummy_context = {
+        "ti": DummyTI()
+    }
+
+    extract_bronze(**dummy_context)
