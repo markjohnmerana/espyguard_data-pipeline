@@ -103,7 +103,7 @@ def extract_bronze(**context):
     # Push to XCom — upload_to_minio will pull this
     context["ti"].xcom_push(key="bronze_data", value=data)
 
-if __name__ == "__main__":
+"""__name__ == "__main__":
     class DummyTI:
         def xcom_push(self, key, value):
             print(f"[XCOM PUSH] key={key}, value_length={len(value)}")
@@ -112,4 +112,4 @@ if __name__ == "__main__":
         "ti": DummyTI()
     }
 
-    extract_bronze(**dummy_context)
+    extract_bronze(**dummy_context)"""

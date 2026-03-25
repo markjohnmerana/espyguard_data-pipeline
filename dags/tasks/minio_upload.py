@@ -1,9 +1,13 @@
+
 import os
 import json
 from datetime import datetime
+from dotenv import load_dotenv
 
 import boto3
 from botocore.client import Config
+
+load_dotenv()
 
 
 # ─────────────────────────────────────────────
@@ -13,11 +17,7 @@ from botocore.client import Config
 # ─────────────────────────────────────────────
 
 def _get_config():
-    """
-    Reads MinIO config from environment variables.
-    Raises immediately if any required var is missing.
-    Fail fast — better than silently using wrong values.
-    """
+
     required = {
         "MINIO_ENDPOINT":   os.getenv("MINIO_ENDPOINT"),
         "MINIO_ACCESS_KEY": os.getenv("MINIO_ACCESS_KEY"),
@@ -33,13 +33,13 @@ def _get_config():
         )
 
     return required
-
-
+"""
+if __name__ == "__main__":
+    config = _get_config()
+    print("Loaded config:", config)
+"""
 def _get_minio_client(config):
-    """
-    Builds a boto3 S3 client pointed at MinIO.
-    Receives config dict — no direct env reads here.
-    """
+   
     return boto3.client(
         "s3",
         endpoint_url          = f"http://{config['MINIO_ENDPOINT']}",
@@ -48,7 +48,13 @@ def _get_minio_client(config):
         config                = Config(signature_version="s3v4"),
         region_name           = "us-east-1"
     )
-
+"""
+if __name__ == "__main__":
+    config = _get_config()
+    client = _get_minio_client(config)
+    print("MinIO client created:", client)
+    print(client.list_buckets())
+"""
 
 def _ensure_bucket(client, bucket):
     """
@@ -59,7 +65,34 @@ def _ensure_bucket(client, bucket):
     if bucket not in existing:
         client.create_bucket(Bucket=bucket)
         print(f"[minio] Created bucket: {bucket}")
+"""
+if __name__ == "__main__":
+    config = _get_config()
+    client = _get_minio_client(config)
+    _ensure_bucket(client, config["MINIO_BUCKET"])
+    print("MinIO client created and bucket verified.")
+    response = client.list_buckets()
+    print("Existing Buckets:", [b['Name'] for b in response['Buckets']])
 
+
+def force_delete_test_bucket():
+    config = _get_config()
+    client = _get_minio_client(config)
+    bucket_name = config["MINIO_BUCKET"]
+    
+    try:
+        print(f"Attempting to delete bucket: {bucket_name}...")
+        client.delete_bucket(Bucket=bucket_name)
+        print("Done! Bucket deleted.")
+    except client.exceptions.NoSuchBucket:
+        print("Bucket doesn't exist")
+    except Exception as e:
+        print(f"Error: {e}")
+        print("\nPossible fix: If you have 'Object Locking' or 'Versioning' enabled, "
+              "MinIO might block a simple delete even if it looks empty.")
+
+if __name__ == "__main__":
+    force_delete_test_bucket()"""
 
 def upload_to_minio(**context):
     """
@@ -96,4 +129,18 @@ def upload_to_minio(**context):
     print(f"[minio] Archived {len(data)} scans "
           f"→ {config['MINIO_BUCKET']}/{filename}")
 
-
+"""
+if __name__ == "__main__":
+    from types import SimpleNamespace
+    mock_data = [
+        {"scan_id": 1, "device_id": "abc", "received_at": "2026-03-25T10:00:00"}
+    ]
+    class MockTI:
+        def xcom_pull(self, task_ids, key):
+            print(f"[MOCK XCOM] task_ids={task_ids}, key={key}")
+            return mock_data
+    mock_context = {
+        "ti": MockTI()
+    }
+    upload_to_minio(**mock_context)
+"""
