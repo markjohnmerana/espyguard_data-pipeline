@@ -13,8 +13,8 @@ USER airflow
 
 # Install dbt for Postgres (Supabase is Postgres-compatible)
 RUN pip install --no-cache-dir \
-    dbt-core==1.8.4 \
-    dbt-postgres==1.8.4
+    dbt-core==1.8.2 \
+    dbt-postgres==1.8.2
 
 # Verify dbt is available
 RUN dbt --version

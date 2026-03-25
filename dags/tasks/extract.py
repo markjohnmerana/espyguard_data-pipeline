@@ -1,8 +1,11 @@
 import os
 import psycopg2
+from dotenv import load_dotenv
+
+load_dotenv()
 
 SUPABASE_DB_URL = os.getenv("SUPABASE_DB_URL")
-
+#print("DB URL:", SUPABASE_DB_URL)
 # ─────────────────────────────────────────────
 # SQL Query — what we extract from Bronze
 #

@@ -49,7 +49,8 @@ with DAG(
         bash_command = (
             f"cd {DBT_PROJECT_DIR} && "
             f"dbt run --select silver "
-            f"--profiles-dir {DBT_PROJECT_DIR}"
+            f"--profiles-dir {DBT_PROJECT_DIR} "
+            f"--full-refresh"
         )
     )
 
@@ -58,7 +59,8 @@ with DAG(
         bash_command = (
             f"cd {DBT_PROJECT_DIR} && "
             f"dbt run --select gold "
-            f"--profiles-dir {DBT_PROJECT_DIR}"
+            f"--profiles-dir {DBT_PROJECT_DIR} "
+            f"--full-refresh"
         )
     )
 
